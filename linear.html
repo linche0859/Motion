@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>等速運動</title>
+    <style>
+      h1 {
+        text-align: center;
+      }
+      #stage {
+        display: block;
+        width: 800px;
+        height: 600px;
+        margin: 30px auto;
+        border: 1px solid;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>X = X0 + V (linear)</h1>
+    <canvas id="stage" width="800" height="600"></canvas>
+    <script>
+      let start = 0
+      // 畫一顆球
+      let canvas = document.querySelector('#stage')
+      let ctx = canvas.getContext('2d')
+      let ball = {
+        position: {
+          x: 0,
+          y: 300
+        },
+        // 半徑
+        radius: 10,
+        // 速度
+        velocity: 100
+      }
+
+      function motion(offset) {
+        ball.position.x = ball.position.x + (ball.velocity / 1000) * offset
+        console.log(ball.position.x)
+        // ball.position.x = ball.position.x + ball.velocity
+        ctx.fillStyle = 'black'
+        ctx.beginPath()
+        // 開始畫圓
+        // 1 PI = 180°
+        ctx.arc(ball.position.x, ball.position.y, ball.radius, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      function render(timestamp) {
+        // 每16毫秒動一次，大約是60fps
+        // console.log(timestamp - start)
+        // 清空前面的資料
+        ctx.clearRect(0, 0, 800, 600)
+        motion(timestamp - start)
+        start = timestamp
+        requestAnimationFrame(render)
+      }
+      requestAnimationFrame(render)
+    </script>
+  </body>
+</html>
