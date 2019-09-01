@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>發射運動</title>
+    <style>
+      h1 {
+        text-align: center;
+      }
+      #stage {
+        display: block;
+        width: 800px;
+        height: 600px;
+        margin: 30px auto;
+        border: 1px solid;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>發射器</h1>
+    <canvas id="stage" width="800" height="600"></canvas>
+    <script>
+      let start = 0
+      let canvas = document.querySelector('#stage')
+      let ctx = canvas.getContext('2d')
+      // 記錄每一顆球目前的狀態
+      let balls = []
+      // 滑鼠的起始位置
+      let mouse = { x: 400, y: 300 }
+
+      /**
+       * 只負責計算位置
+       *
+       * @param {間隔} offset
+       */
+      function motion(offset) {
+        balls.forEach((item, index) => {
+          // 移動中，球的 X軸位置
+          // COS(角度): 鄰邊 / 斜邊 => 取得 X軸距離
+          item.position.x +=
+            (item.velocity / 1000) * offset * Math.cos(item.angle)
+
+          // 移動中，球的 Y軸位置
+          // SIN(角度): 鄰邊 / 對邊 => 取得 Y軸距離
+          item.position.y +=
+            (item.velocity / 1000) * offset * Math.sin(item.angle)
+
+          // 超過邊線，即回收
+          if (
+            item.position.x < 0 ||
+            item.position.x > 800 ||
+            item.position.y < 0 ||
+            item.position.y > 600
+          ) {
+            item.active = false
+          }
+          if (item.active) drawBall(item)
+          else balls.splice(index, 1)
+        })
+      }
+
+      /**
+       * 畫出圓和位置
+       *
+       */
+      function drawBall(item) {
+        ctx.fillStyle = 'black'
+        ctx.beginPath()
+        ctx.arc(item.position.x, item.position.y, item.radius, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      /**
+       * 畫出線和位置
+       */
+      function drawLine() {
+        // canvas context 在正中央
+        ctx.moveTo(400, 300)
+        // 對滑鼠位置，畫出一條線
+        ctx.lineTo(mouse.x, mouse.y)
+        ctx.stroke()
+      }
+
+      function render(timestamp) {
+        canvas.width = canvas.width
+        drawLine()
+        motion(timestamp - start)
+        start = timestamp
+        requestAnimationFrame(render)
+      }
+      requestAnimationFrame(render)
+
+      canvas.addEventListener('mousemove', function(e) {
+        // e: MouseEvent
+        mouse = { x: e.offsetX, y: e.offsetY }
+      })
+
+      // 點擊的發射事件
+      canvas.addEventListener('click', function(e) {
+        mouse = { x: e.offsetX, y: e.offsetY }
+
+        // 鄰邊
+        // 400: 中心點 X軸距離，需減才可得實際 X軸距離
+        let mx = mouse.x - 400
+
+        // 對邊
+        // 300: 中心點 Y軸距離，需減才可得實際 Y軸距離
+        let my = mouse.y - 300
+
+        // Math.sqrt(): 開根號
+        // 畢氏定理
+        // 斜邊: Math.sqrt(mx * mx + my * my)
+
+        // 做一顆球
+        let ball = {
+          // 如果超過邊線，即收回
+          active: true,
+          // 角度: atan(對邊 / 鄰邊)
+          angle: Math.atan2(my, mx),
+          // 初始位置
+          position: {
+            x: 400,
+            y: 300
+          },
+          // 初始位置
+          velocity: 300,
+          // 半徑
+          radius: 10
+        }
+
+        balls.push(ball)
+      })
+    </script>
+  </body>
+</html>

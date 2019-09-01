@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="ie=edge" />
+    <title>煙火</title>
+    <style>
+      h1 {
+        text-align: center;
+      }
+      #stage {
+        display: block;
+        width: 800px;
+        height: 600px;
+        margin: 30px auto;
+        border: 1px solid;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>煙火</h1>
+    <canvas id="stage" width="800" height="600"></canvas>
+    <script>
+      let start = 0
+      let canvas = document.querySelector('#stage')
+      let ctx = canvas.getContext('2d')
+      // 記錄每一顆球目前的狀態
+      let balls = []
+      // 滑鼠的起始位置
+      let mouse = { x: 400, y: 300 }
+      // 重力
+      let gravity = 1
+
+      /**
+       * 只負責計算位置
+       *
+       * @param {間隔} offset
+       */
+      function motion(offset) {
+        balls.forEach((item, index) => {
+          item.life--
+          if (item.life) {
+            item.velocity.x += item.acceleration.x
+            item.position.x += (item.velocity.x / 1000) * offset
+
+            item.acceleration.y += gravity
+            item.velocity.y += item.acceleration.y
+            item.position.y += (item.velocity.y / 1000) * offset
+            drawBall(item)
+          } else balls.splice(index, 1)
+        })
+      }
+
+      /**
+       * 畫出圓和位置
+       *
+       */
+      function drawBall(item) {
+        ctx.fillStyle = item.color
+        ctx.beginPath()
+        ctx.arc(item.position.x, item.position.y, item.radius, 0, Math.PI * 2)
+        ctx.fill()
+      }
+
+      function render(timestamp) {
+        canvas.width = canvas.width
+        motion(timestamp - start)
+        start = timestamp
+        requestAnimationFrame(render)
+      }
+      requestAnimationFrame(render)
+
+      canvas.addEventListener('mousemove', function(e) {
+        // e: MouseEvent
+        mouse = { x: e.offsetX, y: e.offsetY }
+      })
+
+      // 點擊的發射事件
+      canvas.addEventListener('click', function(e) {
+        mouse = { x: e.offsetX, y: e.offsetY }
+        // 隨機的角度
+        let angle
+
+        // 隨機的顏色
+        // 色碼: RGB，每一個都是由 0~255組合，再轉成 16進位。常看到的 f就是 16進位後的結果
+        let color =
+          '#' + parseInt(Math.random() * (256 * 256 * 256 - 1)).toString(16)
+
+        for (let i = 0; i < 100; i++) {
+          // 角度是逆時針跑，如: 90度在 -y軸上
+          angle = Math.random() * Math.PI * 2
+          balls.push({
+            // 生命週期，每動一次就減一
+            life: 100,
+            // 初始位置
+            position: {
+              x: mouse.x,
+              y: mouse.y
+            },
+            // 初始速度
+            velocity: {
+              x: 0,
+              y: 0
+            },
+            // 初始加速度
+            acceleration: {
+              x: Math.cos(angle) * (Math.random() * 10 + 10),
+              // 如 angle為 270，Math.sin(270) = -0.1760459464712114
+              // 初始的加速度最低為 -0.1760459464712114 * 20，所以一開會往上
+              // 每動一次，加一次重力，加速度轉為正數，才開始向下
+              y: Math.sin(angle) * (Math.random() * 10 + 10)
+            },
+            radius: 5,
+            color: color
+          })
+        }
+      })
+    </script>
+  </body>
+</html>
